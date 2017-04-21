@@ -1,4 +1,4 @@
-package executor
+package services
 
 import (
 	"bufio"
@@ -13,14 +13,17 @@ import (
 
 type Executor struct {
 	service         *declaration.Service
-	logs            *logger.Logger
+	name            string
+	logs            logger.Logger
 	binary          string
 	cmd             *exec.Cmd
 	terminations    int
 	terminationLock *sync.Mutex
+	running         int
+	runningLock     *sync.Mutex
 }
 
-func NewExecutor(service *declaration.Service, logs *logger.Logger) (*Executor, error) {
+func NewExecutor(name string, service *declaration.Service, logs logger.Logger) (*Executor, error) {
 
 	binary, err := exec.LookPath(service.Executable)
 	if err != nil {
@@ -28,10 +31,12 @@ func NewExecutor(service *declaration.Service, logs *logger.Logger) (*Executor, 
 	}
 
 	return &Executor{
+		name:            name,
 		service:         service,
 		binary:          binary,
 		logs:            logs,
 		terminationLock: &sync.Mutex{},
+		runningLock:     &sync.Mutex{},
 	}, nil
 }
 
@@ -43,9 +48,19 @@ func (e *Executor) Start() {
 	}
 }
 
-func (e *Executor) Stop() {
-	go func() {
+func (e *Executor) IsRunning() bool {
+	e.runningLock.Lock()
+	isr := e.running > 0
+	e.runningLock.Unlock()
+	return isr
+}
 
+func (e *Executor) Stop() {
+	if !e.IsRunning() {
+		return
+	}
+
+	go func() {
 		e.terminationLock.Lock()
 		terminations := e.terminations
 		e.cmd.Process.Signal(os.Interrupt)
@@ -58,12 +73,12 @@ func (e *Executor) Stop() {
 			e.terminationLock.Unlock()
 
 			if terminated {
-				e.logs.Log(logger.NewLog(logger.PENTACONTA, e.service.Name, "Sigint worked"))
+				e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, "Sigint worked"))
 				return
 			}
 		}
 
-		e.logs.Log(logger.NewLog(logger.PENTACONTA, e.service.Name, "Sigint did not work, send kill"))
+		e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, "Sigint did not work, send kill"))
 		e.cmd.Process.Signal(os.Kill)
 	}()
 }
@@ -94,7 +109,7 @@ func (e *Executor) startService() {
 		for {
 			line, err := buffStdout.ReadString('\n')
 			if err == nil || line != "" {
-				e.logs.Log(logger.NewLog(logger.STDOUT, e.service.Name, line))
+				e.logs.Log(logger.NewLog(logger.STDOUT, e.name, line))
 			}
 			if err != nil {
 				blocker <- 1
@@ -110,7 +125,7 @@ func (e *Executor) startService() {
 		for {
 			line, err := buffStderr.ReadString('\n')
 			if err == nil || line != "" {
-				e.logs.Log(logger.NewLog(logger.STDERR, e.service.Name, line))
+				e.logs.Log(logger.NewLog(logger.STDERR, e.name, line))
 			}
 			if err != nil {
 				blocker <- 1
@@ -120,6 +135,10 @@ func (e *Executor) startService() {
 		}
 	}()
 
+	e.runningLock.Lock()
+	e.running++
+	e.runningLock.Unlock()
+
 	// we block till the stdout AND stderr reader are finished
 	<-blocker
 	<-blocker
@@ -128,8 +147,13 @@ func (e *Executor) startService() {
 	if err != nil {
 		msg += " with " + err.Error()
 	}
-	e.logs.Log(logger.NewLog(logger.PENTACONTA, e.service.Name, msg))
+	e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, msg))
+
 	e.terminationLock.Lock()
 	e.terminations += 1
 	e.terminationLock.Unlock()
+
+	e.runningLock.Lock()
+	e.running--
+	e.runningLock.Unlock()
 }

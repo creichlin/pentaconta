@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/creichlin/pentaconta/declaration"
-	"github.com/creichlin/pentaconta/executor"
 	"github.com/creichlin/pentaconta/logger"
+	"github.com/creichlin/pentaconta/services"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
@@ -37,32 +37,43 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logs := logger.NewLogger()
+	services := &services.Services{
+		Logs:        logger.NewStdoutLogger(),
+		Executors:   map[string]*services.Executor{},
+		FSListeners: map[string]*services.FSListener{},
+	}
 
-	executors := []*executor.Executor{}
+	createAndStartExecutors(services, data)
+	createAndStartFsTriggers(services, data)
 
-	for _, service := range data.Services {
+	time.Sleep(time.Second * 20)
 
-		executor, err := executor.NewExecutor(service, logs)
+}
+
+func createAndStartFsTriggers(svs *services.Services, data *declaration.Root) {
+	for name, fsTrigger := range data.FSTriggers {
+		fsListener, err := services.NewFSListener(name, fsTrigger, svs)
+		if err != nil {
+			panic(err)
+		}
+		svs.FSListeners[name] = fsListener
+		go func() {
+			err := fsListener.Start()
+			log.Fatal(err)
+		}()
+	}
+}
+
+func createAndStartExecutors(svs *services.Services, data *declaration.Root) {
+	for name, service := range data.Services {
+		executor, err := services.NewExecutor(name, service, svs.Logs)
 		if err != nil {
 			panic(err)
 		}
 
-		executors = append(executors, executor)
-	}
-
-	for _, executor := range executors {
+		svs.Executors[name] = executor
 		go executor.Start()
 	}
-
-	time.Sleep(time.Second * 5)
-
-	for _, executor := range executors {
-		executor.Stop()
-	}
-
-	time.Sleep(time.Second * 5)
-
 }
 
 func readConfigName() string {

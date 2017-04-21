@@ -1,11 +1,16 @@
 package declaration
 
 type Service struct {
-	Name       string
 	Executable string
 	Arguments  []string
 }
 
+type FSTrigger struct {
+	Path     string
+	Services []string
+}
+
 type Root struct {
-	Services []*Service
+	Services   map[string]*Service
+	FSTriggers map[string]*FSTrigger `mapstructure:"fs-triggers"`
 }
