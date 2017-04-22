@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"github.com/creichlin/pentaconta/declaration"
 	"github.com/creichlin/pentaconta/logger"
-	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -38,6 +38,14 @@ func NewExecutor(name string, service *declaration.Service, logs logger.Logger) 
 		terminationLock: &sync.Mutex{},
 		runningLock:     &sync.Mutex{},
 	}, nil
+}
+
+func (e *Executor) ID() string {
+	return e.name + strconv.Itoa(e.terminations)
+}
+
+func (e *Executor) Log(level int, message string) {
+	e.logs.Log(logger.NewLog(level, e.ID(), message))
 }
 
 func (e *Executor) Start() {
@@ -73,12 +81,12 @@ func (e *Executor) Stop() {
 			e.terminationLock.Unlock()
 
 			if terminated {
-				e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, "Sigint worked"))
+				e.Log(logger.PENTACONTA, "Sigint worked")
 				return
 			}
 		}
 
-		e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, "Sigint did not work, send kill"))
+		e.Log(logger.PENTACONTA, "Sigint did not work, send kill")
 		e.cmd.Process.Signal(os.Kill)
 	}()
 }
@@ -99,8 +107,11 @@ func (e *Executor) startService() {
 
 	execErr := e.cmd.Start()
 	if execErr != nil {
-		log.Print(execErr)
+		e.Log(logger.PENTACONTA, execErr.Error())
+		return
 	}
+
+	e.Log(logger.PENTACONTA, "Started service")
 
 	blocker := make(chan int)
 	go func() {
@@ -109,7 +120,7 @@ func (e *Executor) startService() {
 		for {
 			line, err := buffStdout.ReadString('\n')
 			if err == nil || line != "" {
-				e.logs.Log(logger.NewLog(logger.STDOUT, e.name, line))
+				e.Log(logger.STDOUT, line)
 			}
 			if err != nil {
 				blocker <- 1
@@ -125,7 +136,7 @@ func (e *Executor) startService() {
 		for {
 			line, err := buffStderr.ReadString('\n')
 			if err == nil || line != "" {
-				e.logs.Log(logger.NewLog(logger.STDERR, e.name, line))
+				e.Log(logger.STDERR, line)
 			}
 			if err != nil {
 				blocker <- 1
@@ -147,7 +158,7 @@ func (e *Executor) startService() {
 	if err != nil {
 		msg += " with " + err.Error()
 	}
-	e.logs.Log(logger.NewLog(logger.PENTACONTA, e.name, msg))
+	e.Log(logger.PENTACONTA, msg)
 
 	e.terminationLock.Lock()
 	e.terminations += 1

@@ -46,8 +46,9 @@ func main() {
 	createAndStartExecutors(services, data)
 	createAndStartFsTriggers(services, data)
 
-	time.Sleep(time.Second * 20)
-
+	for {
+		time.Sleep(time.Second * 1)
+	}
 }
 
 func createAndStartFsTriggers(svs *services.Services, data *declaration.Root) {
