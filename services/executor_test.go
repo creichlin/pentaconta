@@ -17,12 +17,11 @@ func createPcStableExecutor() (*[]string, *Executor, error) {
 	}
 
 	service := &declaration.Service{
-		Name:       "foo",
 		Executable: "pc_stable",
 		Arguments:  []string{},
 	}
 
-	executor, err := NewExecutor(service, logger.NewCallLogger(callback))
+	executor, err := NewExecutor("foo", service, logger.NewCallLogger(callback))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,8 +38,9 @@ func TestLogs(t *testing.T) {
 	}
 	time.Sleep(time.Millisecond * 1500)
 	if !reflect.DeepEqual(*logs, []string{
-		"OUT foo Stable main started",
-		"OUT foo I'm doing fine",
+		"PEN foo0 Started service",
+		"OUT foo0 Stable main started",
+		"OUT foo0 I'm doing fine",
 	}) {
 		t.Errorf("Wrong messages logged, %v", logs)
 	}
@@ -57,9 +57,10 @@ func TestStop(t *testing.T) {
 	time.Sleep(time.Millisecond * 500)
 
 	if !reflect.DeepEqual(*logs, []string{
-		"OUT foo Stable main started",
-		"PEN foo Terminated service with signal: interrupt",
-		"PEN foo Sigint worked",
+		"PEN foo0 Started service",
+		"OUT foo0 Stable main started",
+		"PEN foo0 Terminated service with signal: interrupt",
+		"PEN foo1 Sigint worked",
 	}) {
 		t.Errorf("Wrong messages logged, %v", logs)
 	}

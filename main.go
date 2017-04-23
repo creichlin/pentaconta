@@ -8,7 +8,6 @@ import (
 	"github.com/creichlin/pentaconta/logger"
 	"github.com/creichlin/pentaconta/services"
 	"github.com/ghodss/yaml"
-	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,21 +17,18 @@ import (
 )
 
 func main() {
-
 	location, err := probeLocation(readConfigName())
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dataMap, err := readData(location)
+	data, err := readData(location)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	data := &declaration.Root{}
-
-	err = mapstructure.Decode(dataMap, data)
+	dec, err := declaration.Parse(data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,8 +39,8 @@ func main() {
 		FSListeners: map[string]*services.FSListener{},
 	}
 
-	createAndStartExecutors(services, data)
-	createAndStartFsTriggers(services, data)
+	createAndStartExecutors(services, dec)
+	createAndStartFsTriggers(services, dec)
 
 	for {
 		time.Sleep(time.Second * 1)
@@ -86,13 +82,13 @@ func readConfigName() string {
 	return configName
 }
 
-func readData(file string) (map[string]interface{}, error) {
+func readData(file string) (interface{}, error) {
 	binData, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	data := map[string]interface{}{}
+	data := interface{}(nil)
 
 	if strings.HasSuffix(file, ".json") {
 		err = json.Unmarshal(binData, &data)
