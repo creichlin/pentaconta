@@ -118,11 +118,11 @@ func (e *Executor) startService() {
 		// this will terminate itself when the command exits
 		buffStdout := bufio.NewReader(stdout)
 		for {
-			line, err := buffStdout.ReadString('\n')
-			if err == nil || line != "" {
+			line, errstdo := buffStdout.ReadString('\n')
+			if errstdo == nil || line != "" {
 				e.Log(logger.STDOUT, line)
 			}
-			if err != nil {
+			if errstdo != nil {
 				blocker <- 1
 				// e.logs.Log(logger.NewLog(logger.PENTACOTA, e.service.Name, "Stdout ended"))
 				return
@@ -134,11 +134,11 @@ func (e *Executor) startService() {
 		// this will terminate itself when the command exits
 		buffStderr := bufio.NewReader(stderr)
 		for {
-			line, err := buffStderr.ReadString('\n')
-			if err == nil || line != "" {
+			line, errstde := buffStderr.ReadString('\n')
+			if errstde == nil || line != "" {
 				e.Log(logger.STDERR, line)
 			}
-			if err != nil {
+			if errstde != nil {
 				blocker <- 1
 				// e.logs.Log(logger.NewLog(logger.PENTACOTA, e.service.Name, "Stderr ended"))
 				return

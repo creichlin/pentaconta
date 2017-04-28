@@ -90,7 +90,7 @@ func readConfigParams() (string, bool) {
 }
 
 func printHelp() {
-	fmt.Println("pentaconta help\n")
+	fmt.Println("pentaconta help")
 	fmt.Println(declaration.Doc())
 }
 

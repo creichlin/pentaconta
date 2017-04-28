@@ -5,6 +5,7 @@ import (
 	"github.com/creichlin/goschema"
 	"github.com/creichlin/gutil"
 	"github.com/mitchellh/mapstructure"
+	"sort"
 )
 
 type Service struct {
@@ -45,8 +46,14 @@ func Parse(data interface{}) (*Root, error) {
 func validate(r *Root) *gutil.ErrorCollector {
 	ec := gutil.NewErrorCollector()
 
-	for name, fsTrigger := range r.FSTriggers {
-		for _, serviceName := range fsTrigger.Services {
+	keys := []string{}
+	for name, _ := range r.FSTriggers {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys)
+
+	for _, name := range keys {
+		for _, serviceName := range r.FSTriggers[name].Services {
 			if _, contains := r.Services[serviceName]; !contains {
 				ec.Add(fmt.Errorf("fs-trigger %v has unknown service %v as target", name, serviceName))
 			}
