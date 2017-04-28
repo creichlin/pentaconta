@@ -1,0 +1,8 @@
+services:
+  foo:
+    executable: bash
+    arguments: []
+############
+# errors   #
+############
+nil

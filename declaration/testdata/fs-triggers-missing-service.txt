@@ -1,0 +1,17 @@
+services:
+  foobar:
+    executable: lala
+    arguments: []
+fs-triggers:
+  foo:
+    path: lala
+    services: [foo, bar, foobar]
+  bar:
+    path: lala
+    services: [barx]
+############
+# errors   #
+############
+fs-trigger bar has unknown service barx as target
+fs-trigger foo has unknown service foo as target
+fs-trigger foo has unknown service bar as target

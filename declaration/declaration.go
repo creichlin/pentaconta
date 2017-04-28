@@ -1,7 +1,9 @@
 package declaration
 
 import (
+	"fmt"
 	"github.com/creichlin/goschema"
+	"github.com/creichlin/gutil"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -20,8 +22,42 @@ type Root struct {
 	FSTriggers map[string]*FSTrigger `mapstructure:"fs-triggers"`
 }
 
+func Doc() string {
+	return goschema.Doc(buildSchema())
+}
+
 func Parse(data interface{}) (*Root, error) {
-	schema := goschema.NewObjectType("Pentaconta service declaration", func(o goschema.ObjectType) {
+	schema := buildSchema()
+	errors := goschema.ValidateGO(schema, data)
+	if errors.Has() {
+		return nil, errors
+	}
+
+	root := &Root{}
+	err := mapstructure.Decode(data, root)
+	errors = validate(root)
+	if errors.Has() {
+		return nil, errors
+	}
+	return root, err
+}
+
+func validate(r *Root) *gutil.ErrorCollector {
+	ec := gutil.NewErrorCollector()
+
+	for name, fsTrigger := range r.FSTriggers {
+		for _, serviceName := range fsTrigger.Services {
+			if _, contains := r.Services[serviceName]; !contains {
+				ec.Add(fmt.Errorf("fs-trigger %v has unknown service %v as target", name, serviceName))
+			}
+		}
+	}
+
+	return ec
+}
+
+func buildSchema() goschema.Type {
+	return goschema.NewObjectType("Pentaconta service declaration", func(o goschema.ObjectType) {
 		o.Map("services", "Service definitions", func(m goschema.MapType) {
 			m.Object("Services start executables and restart them when terminated/crashed", func(o goschema.ObjectType) {
 				o.String("executable", "Path to the executable, if not absolute will use PATH env var")
@@ -39,13 +75,4 @@ func Parse(data interface{}) (*Root, error) {
 			})
 		}).Optional()
 	})
-
-	errors := goschema.ValidateGO(schema, data)
-	if errors.Has() {
-		return nil, errors
-	}
-
-	root := &Root{}
-	err := mapstructure.Decode(data, root)
-	return root, err
 }

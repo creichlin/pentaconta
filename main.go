@@ -17,7 +17,12 @@ import (
 )
 
 func main() {
-	location, err := probeLocation(readConfigName())
+	configName, help := readConfigParams()
+	if help {
+		printHelp()
+		return
+	}
+	location, err := probeLocation(configName)
 
 	if err != nil {
 		log.Fatal(err)
@@ -73,13 +78,20 @@ func createAndStartExecutors(svs *services.Services, data *declaration.Root) {
 	}
 }
 
-func readConfigName() string {
+func readConfigParams() (string, bool) {
 	var configName string
+	var help bool
 	executable := filepath.Base(os.Args[0])
 	flags := flag.NewFlagSet("pentacota", flag.ContinueOnError)
 	flags.StringVar(&configName, "config", executable, "name of config file to use, no .yaml or .json extension.")
+	flags.BoolVar(&help, "help", false, "Print help text and exit")
 	flags.Parse(os.Args[1:])
-	return configName
+	return configName, help
+}
+
+func printHelp() {
+	fmt.Println("pentaconta help\n")
+	fmt.Println(declaration.Doc())
 }
 
 func readData(file string) (interface{}, error) {
