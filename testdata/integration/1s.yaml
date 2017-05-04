@@ -1,0 +1,13 @@
+services:
+  pc_stable:
+    executable: /home/creichlin/workspaces/dos/bin/pc_stable
+    arguments: [--foo, bar]
+
+fs-triggers:
+  pc_stable:
+    path: /home/creichlin/workspaces/dos/main.yaml
+    services: [pc_stable]
+
+stats:
+  seconds: 5
+  file: stats.json

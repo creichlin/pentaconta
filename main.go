@@ -34,18 +34,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	runWithDeclaration(data, time.Hour*24*356*100)
+}
+
+func runWithDeclaration(data interface{}, duration time.Duration) {
 	dec, err := declaration.Parse(data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	eval := evaluation.EvaluationCollector()
-
-	services := &services.Services{
-		Logs: logger.NewSplitLogger(
+	var logs logger.Logger
+	var eval *evaluation.Collector
+	if dec.Stats != nil {
+		eval = evaluation.EvaluationCollector()
+		logs = logger.NewSplitLogger(
 			logger.NewStdoutLogger(),
 			eval,
-		),
+		)
+	} else {
+		logs = logger.NewStdoutLogger()
+	}
+
+	services := &services.Services{
+		Logs:        logs,
 		Executors:   map[string]*services.Executor{},
 		FSListeners: map[string]*services.FSListener{},
 	}
@@ -53,17 +64,21 @@ func main() {
 	createAndStartExecutors(services, dec)
 	createAndStartFsTriggers(services, dec)
 
-	for {
+	startTime := time.Now()
+
+	for time.Now().Before(startTime.Add(duration)) {
 		time.Sleep(time.Second * 1)
 
-		stats := eval.Status(dec.Stats.Seconds)
-		bin, err := json.MarshalIndent(stats, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		err = ioutil.WriteFile(dec.Stats.File, bin, 0644)
-		if err != nil {
-			panic(err)
+		if eval != nil {
+			stats := eval.Status(dec.Stats.Seconds)
+			bin, err := json.MarshalIndent(stats, "", "  ")
+			if err != nil {
+				panic(err)
+			}
+			err = ioutil.WriteFile(dec.Stats.File, bin, 0644)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }
