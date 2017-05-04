@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/creichlin/pentaconta/declaration"
+	"github.com/creichlin/pentaconta/evaluation"
 	"github.com/creichlin/pentaconta/logger"
 	"github.com/creichlin/pentaconta/services"
 	"github.com/ghodss/yaml"
@@ -38,8 +39,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	eval := evaluation.EvaluationCollector()
+
 	services := &services.Services{
-		Logs:        logger.NewStdoutLogger(),
+		Logs: logger.NewSplitLogger(
+			logger.NewStdoutLogger(),
+			eval,
+		),
 		Executors:   map[string]*services.Executor{},
 		FSListeners: map[string]*services.FSListener{},
 	}
@@ -49,6 +55,16 @@ func main() {
 
 	for {
 		time.Sleep(time.Second * 1)
+
+		stats := eval.Status(dec.Stats.Seconds)
+		bin, err := json.MarshalIndent(stats, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		err = ioutil.WriteFile(dec.Stats.File, bin, 0644)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

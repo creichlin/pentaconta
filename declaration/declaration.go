@@ -18,7 +18,13 @@ type FSTrigger struct {
 	Services []string
 }
 
+type Stats struct {
+	File    string
+	Seconds int
+}
+
 type Root struct {
+	Stats      *Stats
 	Services   map[string]*Service
 	FSTriggers map[string]*FSTrigger `mapstructure:"fs-triggers"`
 }
@@ -80,6 +86,10 @@ func buildSchema() goschema.Type {
 					l.String("Service name")
 				})
 			})
+		}).Optional()
+		o.Object("stats", "Statistics writer", func(o goschema.ObjectType) {
+			o.Int("seconds", "Over how many seconds stats are printed").Min(5).Max(60)
+			o.String("file", "Where to write the stats to")
 		}).Optional()
 	})
 }

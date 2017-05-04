@@ -6,7 +6,6 @@ import (
 	"github.com/creichlin/pentaconta/logger"
 	"os"
 	"os/exec"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -40,12 +39,8 @@ func NewExecutor(name string, service *declaration.Service, logs logger.Logger) 
 	}, nil
 }
 
-func (e *Executor) ID() string {
-	return e.name + strconv.Itoa(e.terminations)
-}
-
 func (e *Executor) Log(level int, message string) {
-	e.logs.Log(logger.NewLog(level, e.ID(), message))
+	e.logs.Log(logger.NewLog(level, e.name, e.terminations, message))
 }
 
 func (e *Executor) Start() {

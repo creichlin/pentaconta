@@ -13,8 +13,12 @@ const (
 )
 
 var (
-	LEVELS       = []string{"OUT", "ERR", "PEN"}
-	LEVEL_COLORS = []string{"32", "31", "34"}
+	LEVELS      = []string{"OUT", "ERR", "PEN"}
+	ANSI_LEVELS = map[string]string{
+		"OUT": "\033[0;32OUT\033[0m",
+		"ERR": "\033[0;31ERR\033[0m",
+		"PEN": "\033[0;34PEN\033[0m",
+	}
 )
 
 type Logger interface {
@@ -22,27 +26,45 @@ type Logger interface {
 }
 
 type Log struct {
-	service string
-	message string
-	level   int
-	time    time.Time
+	Service  string
+	Instance int
+	Message  string
+	Level    int
+	Time     time.Time
 }
 
-func NewLog(level int, service, message string) Log {
+func NewLog(level int, service string, instance int, message string) Log {
 	return Log{
-		time:    time.Now(),
-		service: service,
-		level:   level,
-		message: message,
+		Time:     time.Now(),
+		Service:  service,
+		Instance: instance,
+		Level:    level,
+		Message:  message,
+	}
+}
+
+type splitLogger struct {
+	targets []Logger
+}
+
+func NewSplitLogger(targets ...Logger) Logger {
+	return &splitLogger{
+		targets: targets,
+	}
+}
+
+func (l *splitLogger) Log(lg Log) {
+	for _, l := range l.targets {
+		l.Log(lg)
 	}
 }
 
 type callLogger struct {
 	logs     chan Log
-	callback func(time.Time, string, string, string)
+	callback func(time.Time, string, string, int, string)
 }
 
-func NewCallLogger(callback func(time.Time, string, string, string)) Logger {
+func NewCallLogger(callback func(time.Time, string, string, int, string)) Logger {
 	l := &callLogger{
 		logs:     make(chan Log, 100),
 		callback: callback,
@@ -53,7 +75,7 @@ func NewCallLogger(callback func(time.Time, string, string, string)) Logger {
 
 func (l *callLogger) start() {
 	for lg := range l.logs {
-		l.callback(lg.time, LEVELS[lg.level], lg.service, strings.Trim(lg.message, "\n"))
+		l.callback(lg.Time, LEVELS[lg.Level], lg.Service, lg.Instance, strings.Trim(lg.Message, "\n"))
 	}
 }
 
@@ -77,12 +99,9 @@ func NewStdoutLogger() Logger {
 
 func (l *stdoutLogger) start() {
 	for lg := range l.logs {
-		timef := lg.time.Format("2006-01-02 15:04 05.999999")
+		timef := lg.Time.Format("2006-01-02 15:04 05.999999")
 		timef += strings.Repeat("0", 26-len(timef))
-
-		cc := "\033[0;" + LEVEL_COLORS[lg.level] + "m"
-
-		fmt.Printf("%v %v%v\033[0m %v: %v\n", timef, cc, LEVELS[lg.level], lg.service, strings.Trim(lg.message, "\n"))
+		fmt.Printf("%v %v %v%v: %v\n", timef, ANSI_LEVELS[LEVELS[lg.Level]], lg.Service, lg.Instance, strings.Trim(lg.Message, "\n"))
 	}
 }
 
