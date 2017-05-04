@@ -130,7 +130,7 @@ func probeLocation(path string) (string, error) {
 			locations = append(locations, abspath+".json")
 			locations = append(locations, abspath+".yaml")
 		}
-		abspath := filepath.Join("/etc", "argo", path)
+		abspath := filepath.Join("/etc", path)
 		locations = append(locations, abspath+".json")
 		locations = append(locations, abspath+".yaml")
 	}
