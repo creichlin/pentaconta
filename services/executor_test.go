@@ -32,6 +32,41 @@ func createPCExecutor(name string) (*[]string, *Executor, error) {
 	return &logs, executor, nil
 }
 
+func createExecutor(t *testing.T, service *declaration.Service) (*[]string, *Executor) {
+	logs := []string{}
+
+	callback := func(t time.Time, level, service string, instance int, message string) {
+		logs = append(logs, fmt.Sprintf("%v %v%v %v", level, service, instance, message))
+	}
+
+	executor, err := NewExecutor("foo", service, logger.NewCallLogger(callback))
+	if err != nil {
+		t.Error(err)
+		return nil, nil
+	}
+
+	go executor.Start()
+
+	return &logs, executor
+}
+
+func TestWorkingDir(t *testing.T) {
+	if logs, _ := createExecutor(t, &declaration.Service{
+		Executable: "pc_info",
+		WorkingDir: "/etc",
+	}); logs != nil {
+		time.Sleep(time.Millisecond * 100)
+		if !reflect.DeepEqual(*logs, []string{
+			"PEN foo0 Started service",
+			"OUT foo0 arguments: ",
+			"OUT foo0 cwd: /etc",
+		}) {
+			t.Errorf("Wrong messages logged, %v", strings.Join(*logs, "\",\n\""))
+		}
+	}
+
+}
+
 func TestCrash(t *testing.T) {
 	logs, _, err := createPCExecutor("unstable")
 	if err != nil {

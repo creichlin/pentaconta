@@ -90,6 +90,10 @@ func (e *Executor) startService() {
 	e.cmd = exec.Command(e.binary, e.service.Arguments...)
 	e.cmd.Env = os.Environ()
 
+	if e.service.WorkingDir != "" {
+		e.cmd.Dir = e.service.WorkingDir
+	}
+
 	stdout, err := e.cmd.StdoutPipe()
 	if err != nil {
 		panic(err)

@@ -10,6 +10,7 @@ import (
 
 type Service struct {
 	Executable string
+	WorkingDir string
 	Arguments  []string
 }
 
@@ -74,6 +75,7 @@ func buildSchema() goschema.Type {
 		o.Map("services", "Service definitions", func(m goschema.MapType) {
 			m.Object("Services start executables and restart them when terminated/crashed", func(o goschema.ObjectType) {
 				o.String("executable", "Path to the executable, if not absolute will use PATH env var")
+				o.String("working-dir", "Path to the working dir, absolute or will use path to current working dir").Optional()
 				o.List("arguments", "List of arguments", func(l goschema.ListType) {
 					l.String("Single argument")
 				})
