@@ -10,7 +10,7 @@ import (
 
 type Service struct {
 	Executable string
-	WorkingDir string
+	WorkingDir string `mapstructure:"working-dir"`
 	Arguments  []string
 }
 
