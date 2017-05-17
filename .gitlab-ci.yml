@@ -3,11 +3,6 @@ image: golang:1.8
 variables:
   REPO_NAME: gitlab.com/creichlin/pentaconta
 
-before_script:
-  - go version
-  - echo $CI_BUILD_REF
-  - echo $CI_PROJECT_DIR
-
 stages:
   - test
   - build
@@ -15,19 +10,23 @@ stages:
 test-project:
   stage: test
   script:
+    - go get github.com/tools/godep
+    - godep restore
     - mkdir -p $GOPATH/src/$REPO_NAME
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME
     - cd $GOPATH/src/$REPO_NAME
-    - go test $(go list ./... | grep -v /vendor/)
+    - godep go test $(go list ./... | grep -v /vendor/)
 
 build-project:
   stage: build
   script:
+    - go get github.com/tools/godep
+    - godep restore
     - mkdir -p $GOPATH/src/$REPO_NAME
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
     - mkdir -p $CI_PROJECT_DIR/artifacts
     - cd $GOPATH/src/$REPO_NAME
-    - go build -o $CI_PROJECT_DIR/artifacts/pentaconta
+    - godep go build -o $CI_PROJECT_DIR/artifacts/pentaconta
   artifacts:
     paths:
       - artifacts/pentaconta
