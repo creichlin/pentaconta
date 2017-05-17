@@ -2,8 +2,8 @@ package services
 
 import (
 	"bufio"
-	"github.com/creichlin/pentaconta/declaration"
-	"github.com/creichlin/pentaconta/logger"
+	"gitlab.com/creichlin/pentaconta/declaration"
+	"gitlab.com/creichlin/pentaconta/logger"
 	"os"
 	"os/exec"
 	"sync"

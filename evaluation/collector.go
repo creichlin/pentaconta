@@ -1,7 +1,7 @@
 package evaluation
 
 import (
-	"github.com/creichlin/pentaconta/logger"
+	"gitlab.com/creichlin/pentaconta/logger"
 	"strings"
 	"sync"
 	"time"

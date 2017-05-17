@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/creichlin/gutil/run"
-	"github.com/creichlin/pentaconta/declaration"
+	"gitlab.com/creichlin/pentaconta/declaration"
 )
 
 type FSListener struct {

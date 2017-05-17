@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/creichlin/pentaconta/logger"
+	"gitlab.com/creichlin/pentaconta/logger"
 )
 
 type Services struct {

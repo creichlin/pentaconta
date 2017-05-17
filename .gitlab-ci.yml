@@ -1,0 +1,22 @@
+image: golang:1.8
+stages:
+  - build
+  - test
+
+before_script:
+  - go get github.com/tools/godep
+  - cp -r /builds/user /go/src/gitlab.com/creichlin/
+  - cd /go/src/gitlab.com/creichlin/pentaconta
+
+build-my-project:
+  stage: build
+  script:
+    - godep restore
+    - godep go build
+
+test-my-project:
+  stage: test
+  script:
+    - godep restore
+    - godep go test -v -cover ./...
+    
