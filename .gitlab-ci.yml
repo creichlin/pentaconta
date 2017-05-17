@@ -1,22 +1,33 @@
 image: golang:1.8
-stages:
-  - build
-  - test
+
+variables:
+  REPO_NAME: gitlab.com/creichlin/pentaconta
 
 before_script:
-  - go get github.com/tools/godep
-  - cp -r /builds/user /go/src/gitlab.com/creichlin/
-  - cd /go/src/gitlab.com/creichlin/pentaconta
+  - go version
+  - echo $CI_BUILD_REF
+  - echo $CI_PROJECT_DIR
 
-build-my-project:
-  stage: build
-  script:
-    - godep restore
-    - godep go build
+stages:
+  - test
+  - build
 
-test-my-project:
+test-project:
   stage: test
   script:
-    - godep restore
-    - godep go test -v -cover ./...
-    
+    - mkdir -p $GOPATH/src/$REPO_NAME
+    - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME
+    - cd $GOPATH/src/$REPO_NAME
+    - go test $(go list ./... | grep -v /vendor/)
+
+build-project:
+  stage: build
+  script:
+    - mkdir -p $GOPATH/src/$REPO_NAME
+    - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
+    - mkdir -p $CI_PROJECT_DIR/artifacts
+    - cd $GOPATH/src/$REPO_NAME
+    - go build -o $CI_PROJECT_DIR/artifacts/pentaconta
+  artifacts:
+    paths:
+      - artifacts/pentaconta
