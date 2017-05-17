@@ -2,6 +2,9 @@
 	"ImportPath": "gitlab.com/creichlin/pentaconta",
 	"GoVersion": "go1.8",
 	"GodepVersion": "v79",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/creichlin/goschema",
@@ -17,6 +20,10 @@
 		},
 		{
 			"ImportPath": "github.com/creichlin/gutil/run",
+			"Rev": "5224384d7ccdb7c3096ecf38993b1a154e5d45c0"
+		},
+		{
+			"ImportPath": "github.com/creichlin/gutil/testin",
 			"Rev": "5224384d7ccdb7c3096ecf38993b1a154e5d45c0"
 		},
 		{
