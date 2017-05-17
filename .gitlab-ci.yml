@@ -11,21 +11,21 @@ test-project:
   stage: test
   script:
     - go get github.com/tools/godep
-    - godep restore
     - mkdir -p $GOPATH/src/$REPO_NAME
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME
     - cd $GOPATH/src/$REPO_NAME
+    - godep restore
     - godep go test $(go list ./... | grep -v /vendor/)
 
 build-project:
   stage: build
   script:
     - go get github.com/tools/godep
-    - godep restore
     - mkdir -p $GOPATH/src/$REPO_NAME
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
     - mkdir -p $CI_PROJECT_DIR/artifacts
     - cd $GOPATH/src/$REPO_NAME
+    - godep restore
     - godep go build -o $CI_PROJECT_DIR/artifacts/pentaconta
   artifacts:
     paths:
