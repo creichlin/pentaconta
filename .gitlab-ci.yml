@@ -6,6 +6,7 @@ variables:
 stages:
   - test
   - build
+  - deploy
 
 test-project:
   stage: test
@@ -16,7 +17,7 @@ test-project:
     - cd $GOPATH/src/$REPO_NAME
     - godep restore
     - go install gitlab.com/creichlin/pentaconta/testservices/...
-    - godep go test $(go list ./... | grep -v /vendor/)
+    - godep go test ./...
 
 build-project:
   stage: build
@@ -24,10 +25,17 @@ build-project:
     - go get github.com/tools/godep
     - mkdir -p $GOPATH/src/$REPO_NAME
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
-    - mkdir -p $CI_PROJECT_DIR/artifacts
     - cd $GOPATH/src/$REPO_NAME
     - godep restore
+    - mkdir -p $CI_PROJECT_DIR/artifacts
     - godep go build -o $CI_PROJECT_DIR/artifacts/pentaconta
   artifacts:
     paths:
       - artifacts/pentaconta
+
+deploy-project:
+  stage: deploy
+  script:
+    - apt-get update
+    - apt-get install -y python-pip libyaml
+    - pip install --upgrade awscli
