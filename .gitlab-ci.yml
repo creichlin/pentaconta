@@ -15,6 +15,7 @@ test-project:
     - mv $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME
     - cd $GOPATH/src/$REPO_NAME
     - godep restore
+    - go build gitlab.com/creichlin/pentaconta/testservices/...
     - godep go test $(go list ./... | grep -v /vendor/)
 
 build-project:
