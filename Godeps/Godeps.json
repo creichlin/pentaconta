@@ -1,0 +1,56 @@
+{
+	"ImportPath": "gitlab.com/creichlin/pentaconta",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/creichlin/goschema",
+			"Rev": "d53398825987cc35a9e3bb8c1a2d632a3a8122b7"
+		},
+		{
+			"ImportPath": "github.com/creichlin/gutil",
+			"Rev": "5224384d7ccdb7c3096ecf38993b1a154e5d45c0"
+		},
+		{
+			"ImportPath": "github.com/creichlin/gutil/format",
+			"Rev": "5224384d7ccdb7c3096ecf38993b1a154e5d45c0"
+		},
+		{
+			"ImportPath": "github.com/creichlin/gutil/run",
+			"Rev": "5224384d7ccdb7c3096ecf38993b1a154e5d45c0"
+		},
+		{
+			"ImportPath": "github.com/ghodss/yaml",
+			"Comment": "v1.0.0",
+			"Rev": "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "cc8532a8e9a55ea36402aa21efdf403a60d34096"
+		},
+		{
+			"ImportPath": "github.com/rjeczalik/notify",
+			"Rev": "660542b98f76c58910002c82e912b71248f4daa0"
+		},
+		{
+			"ImportPath": "github.com/xeipuuv/gojsonpointer",
+			"Rev": "6fe8760cad3569743d51ddbb243b26f8456742dc"
+		},
+		{
+			"ImportPath": "github.com/xeipuuv/gojsonreference",
+			"Rev": "e02fc20de94c78484cd5ffb007f8af96be030a45"
+		},
+		{
+			"ImportPath": "github.com/xeipuuv/gojsonschema",
+			"Rev": "a55c211c418162597a32c74c7230f81adb5ad616"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "98b5b1e7e80eb60271c8dc4eba6521ec2c3e811e"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+		}
+	]
+}
