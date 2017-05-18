@@ -1,4 +1,3 @@
-image: golang:1.8
 
 variables:
   REPO_NAME: gitlab.com/creichlin/pentaconta
@@ -9,6 +8,7 @@ stages:
   - deploy
 
 test-project:
+  image: golang:1.8
   stage: test
   script:
     - go get github.com/tools/godep
@@ -20,6 +20,7 @@ test-project:
     - godep go test ./...
 
 build-project:
+  image: golang:1.8
   stage: build
   script:
     - go get github.com/tools/godep
@@ -34,8 +35,7 @@ build-project:
       - artifacts/pentaconta
 
 deploy-project:
+  image: cgswong/aws
   stage: deploy
   script:
-    - apt-get update
-    - apt-get install -y python-pip libyaml
-    - pip install --upgrade awscli
+    - aws s3 cp artifacts/pentaconta s3://omg-repository/pentaconta --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
