@@ -38,4 +38,4 @@ deploy-project:
   image: cgswong/aws
   stage: deploy
   script:
-    - aws s3 cp artifacts/pentaconta s3://omg-repository/pentaconta --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+    - aws s3 cp artifacts/pentaconta s3://omg-repository/pentaconta-latest --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
