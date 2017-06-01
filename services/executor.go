@@ -6,7 +6,9 @@ import (
 	"github.com/creichlin/pentaconta/logger"
 	"os"
 	"os/exec"
+	"runtime"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -66,7 +68,14 @@ func (e *Executor) Stop() {
 	go func() {
 		e.terminationLock.Lock()
 		terminations := e.terminations
-		e.cmd.Process.Signal(os.Interrupt)
+		var sig os.Signal
+
+		if runtime.GOOS == "windows" {
+			sig = os.Interrupt
+		} else {
+			sig = syscall.SIGABRT
+		}
+		e.cmd.Process.Signal(sig)
 		e.terminationLock.Unlock()
 
 		for i := 0; i < 10; i++ {
