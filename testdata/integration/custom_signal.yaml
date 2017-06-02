@@ -1,0 +1,10 @@
+services:
+  pc_stable:
+    executable: pc_stable
+    arguments: []
+
+fs-triggers:
+  aborted:
+    path: aborted.txt
+    services: [pc_stable]
+    signal: aborted

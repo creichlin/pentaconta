@@ -25,7 +25,11 @@ func NewFSListener(name string, trigger *declaration.FSTrigger, services *Servic
 
 func (f *FSListener) changed(event, path string) error {
 	for _, service := range f.trigger.Services {
-		f.services.Executors[service].Stop()
+		if f.trigger.Signal == "" {
+			f.services.Executors[service].Stop()
+		}else{
+			f.services.Executors[service].Signal(f.trigger.Signal)
+		}
 	}
 	return nil
 }

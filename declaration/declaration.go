@@ -17,6 +17,7 @@ type Service struct {
 type FSTrigger struct {
 	Path     string
 	Services []string
+	Signal   string
 }
 
 type Stats struct {
@@ -87,6 +88,7 @@ func buildSchema() goschema.Type {
 				o.List("services", "List of service names to restart", func(l goschema.ListType) {
 					l.String("Service name")
 				})
+				o.String("signal", "Name of the signal to send. If ommited sigint and sigkill are used.").Optional()
 			})
 		}).Optional()
 		o.Object("stats", "Statistics writer", func(o goschema.ObjectType) {

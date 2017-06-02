@@ -6,9 +6,7 @@ import (
 	"gitlab.com/creichlin/pentaconta/logger"
 	"os"
 	"os/exec"
-	"runtime"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -60,6 +58,22 @@ func (e *Executor) IsRunning() bool {
 	return isr
 }
 
+func (e *Executor) Signal(signal string) {
+	if !e.IsRunning() {
+		return
+	}
+	sig, err := parseSignal(signal)
+	if err != nil {
+		e.Log(logger.PENTACONTA, err.Error())
+		return
+	}
+
+	err = e.cmd.Process.Signal(sig)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (e *Executor) Stop() {
 	if !e.IsRunning() {
 		return
@@ -68,15 +82,11 @@ func (e *Executor) Stop() {
 	go func() {
 		e.terminationLock.Lock()
 		terminations := e.terminations
-		var sig os.Signal
-
-		if runtime.GOOS == "windows" {
-			sig = os.Interrupt
-		} else {
-			sig = syscall.SIGABRT
-		}
-		e.cmd.Process.Signal(sig)
 		e.terminationLock.Unlock()
+		err := e.cmd.Process.Signal(os.Interrupt)
+		if err != nil {
+			panic(err)
+		}
 
 		for i := 0; i < 10; i++ {
 			time.Sleep(time.Millisecond * 300)
@@ -148,7 +158,6 @@ func (e *Executor) startService() {
 			}
 			if errstde != nil {
 				blocker <- 1
-				// e.logs.Log(logger.NewLog(logger.PENTACOTA, e.service.Name, "Stderr ended"))
 				return
 			}
 		}

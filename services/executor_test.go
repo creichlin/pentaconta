@@ -85,6 +85,24 @@ func TestCrash(t *testing.T) {
 	}
 }
 
+
+func TestCustomSignal(t *testing.T) {
+	logs, x, err := createPCExecutor("stable")
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Millisecond * 100)
+	x.Signal("aborted")
+	time.Sleep(time.Millisecond * 100)
+	if !reflect.DeepEqual((*logs)[:3], []string{
+		"PEN foo0 Started service",
+		"OUT foo0 Stable main started",
+		"ERR foo0 SIGABRT: abort",
+	}) {
+		t.Errorf("Wrong messages logged, %v", strings.Join((*logs)[:3], "\",\n\""))
+	}
+}
+
 func TestLogs(t *testing.T) {
 	logs, _, err := createPCExecutor("stable")
 	if err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"log"
@@ -37,31 +36,25 @@ func TestReadCustomConfigName(t *testing.T) {
 	}
 }
 
+
+func TestCustomSignals(t *testing.T) {
+	sr := NewServiceRunner("testdata/integration/custom_signal.yaml")
+	defer sr.Close()
+	ioutil.WriteFile(filepath.Join(sr.Dir, "aborted.txt"), []byte("data"), 0644)
+	go sr.Start(time.Millisecond * 1500)
+	time.Sleep(time.Millisecond * 500)
+	ioutil.WriteFile(filepath.Join(sr.Dir, "aborted.txt"), []byte("datax"), 0644)
+	time.Sleep(time.Millisecond * 500)
+
+}
+
+
+
 func TestRuns(t *testing.T) {
-	dir, err := ioutil.TempDir("", "pentacontatest")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(dir)
-	defer os.RemoveAll(dir) // clean up
-
-	cd, err := ioutil.ReadFile("testdata/integration/1s.yaml")
-	if err != nil {
-		panic(err)
-	}
-
-	data := interface{}(nil)
-
-	err = yaml.Unmarshal(cd, &data)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Chdir(dir)
-
-	runWithDeclaration(data, time.Second*2)
-
-	stats, err := ioutil.ReadFile(filepath.Join(dir, "stats.json"))
+	sr := NewServiceRunner("testdata/integration/1s.yaml")
+	defer sr.Close()
+	sr.Start(time.Second * 2)
+	stats, err := ioutil.ReadFile(filepath.Join(sr.Dir, "stats.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -80,5 +73,49 @@ func TestRuns(t *testing.T) {
 
 	if string(stats) != expected {
 		t.Errorf("Stats is not as expected:\nCurrent\n%v\nexpected:\n%v", string(stats), expected)
+	}
+}
+
+
+type ServiceRunner struct {
+	data interface{}
+	oldWorkingDir string
+	Dir string
+}
+
+func (s *ServiceRunner)Start(duration time.Duration) {
+	runWithDeclaration(s.data, duration)
+}
+
+func (s *ServiceRunner)Close() {
+	os.RemoveAll(s.Dir)
+	os.Chdir(s.oldWorkingDir)
+}
+
+func NewServiceRunner(configPath string) *ServiceRunner {
+	dir, err := ioutil.TempDir("", "pentacontatest")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cd, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
+
+	data := interface{}(nil)
+
+	err = yaml.Unmarshal(cd, &data)
+	if err != nil {
+		panic(err)
+	}
+
+	oldWorkingDir, _ := os.Getwd()
+	os.Chdir(dir)
+
+	return &ServiceRunner{
+		data: data,
+		oldWorkingDir: oldWorkingDir,
+		Dir: dir,
 	}
 }
